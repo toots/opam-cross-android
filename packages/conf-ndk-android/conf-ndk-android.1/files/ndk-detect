@@ -1,0 +1,60 @@
+#!/bin/sh
+# Locate the NDK's LLVM toolchain for aarch64-linux-android and record where it
+# is, as opam variables for the packages that build with it.
+#
+# The NDK is looked for under the variables the Android tooling already sets --
+# sdkmanager and Android Studio set ANDROID_NDK_ROOT, CI images commonly set
+# ANDROID_NDK_LATEST_HOME -- so a machine set up for Android development needs
+# nothing further. ANDROID_API selects the API level, which is the minimum
+# Android version the resulting binaries run on.
+set -e
+
+TRIPLE=aarch64-linux-android
+API=${ANDROID_API:-26}
+CC_NAME=$TRIPLE$API-clang
+
+for root in "${ANDROID_NDK_ROOT-}" "${ANDROID_NDK_HOME-}" \
+            "${ANDROID_NDK_LATEST_HOME-}" "${ANDROID_NDK-}"; do
+    [ -n "$root" ] || continue
+    # The prebuilt directory is named after the build machine, so it is matched
+    # rather than named.
+    for bin in "$root"/toolchains/llvm/prebuilt/*/bin; do
+        if [ -x "$bin/$CC_NAME" ]; then
+            bindir=$bin
+            break 2
+        fi
+    done
+done
+
+# An NDK already on PATH is just as good.
+if [ -z "${bindir-}" ] && command -v "$CC_NAME" >/dev/null 2>&1; then
+    bindir=$(dirname "$(command -v "$CC_NAME")")
+fi
+
+if [ -z "${bindir-}" ]; then
+    cat >&2 <<MSG
+No $CC_NAME found.
+
+Point one of ANDROID_NDK_ROOT, ANDROID_NDK_HOME, ANDROID_NDK_LATEST_HOME or
+ANDROID_NDK at an NDK, or put the toolchain on PATH:
+
+    ANDROID_NDK_ROOT=/path/to/android-ndk opam install conf-ndk-android
+
+Set ANDROID_API to build against an API level other than $API.
+MSG
+    exit 1
+fi
+
+cc=$bindir/$CC_NAME
+"$cc" --version >/dev/null
+
+{
+    # Consumers spell the compiler %{conf-ndk-android:prefix}%clang. The NDK
+    # prefixes clang with the triple and API level but leaves the binutils
+    # unprefixed (llvm-ar, llvm-ranlib, ...), so a single prefix cannot name
+    # both and the directory holding them is published as well.
+    echo "prefix: \"$bindir/$TRIPLE$API-\""
+    echo "bindir: \"$bindir\""
+    echo "host: \"$("$cc" -dumpmachine)\""
+    echo "api: \"$API\""
+} > conf-ndk-android.config

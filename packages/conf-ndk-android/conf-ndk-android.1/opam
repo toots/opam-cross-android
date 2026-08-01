@@ -1,0 +1,24 @@
+opam-version: "2.0"
+maintainer: "Romain Beauxis <toots@rastageeks.org>"
+authors: "Romain Beauxis <toots@rastageeks.org>"
+homepage: "https://github.com/ocaml-cross/opam-cross-android"
+bug-reports: "https://github.com/ocaml-cross/opam-cross-android/issues"
+license: "MIT"
+flags: conf
+build: [["sh" "ndk-detect"]]
+synopsis:
+  "Virtual package specifying the location of the Android NDK toolchain for 64-bit ARM"
+description: """
+Locates the NDK's LLVM toolchain targeting aarch64-linux-android.
+
+The NDK is looked for under the variables the Android tooling already sets --
+ANDROID_NDK_ROOT, ANDROID_NDK_HOME, ANDROID_NDK_LATEST_HOME, ANDROID_NDK -- and
+on PATH, so a machine set up for Android development needs nothing further:
+
+    ANDROID_NDK_ROOT=/path/to/android-ndk opam install ocaml-android
+
+ANDROID_API selects the API level, which is the minimum Android version the
+resulting binaries will run on. It defaults to 26 and should match the app's
+minSdk."""
+depends: ["ocaml"]
+extra-files: [["ndk-detect" "sha256=7b3fffe68494b79712047468fa2de21094ebced81faa7211bc296fe38cb78f5d"]]
