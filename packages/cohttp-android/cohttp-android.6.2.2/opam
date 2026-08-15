@@ -1,0 +1,62 @@
+opam-version: "2.0"
+synopsis: "An OCaml library for HTTP clients and servers"
+description: """\
+Cohttp is an OCaml library for creating HTTP daemons. It has a portable
+HTTP parser, and implementations using various asynchronous programming
+libraries.
+
+See the cohttp-async, cohttp-lwt, cohttp-lwt-unix, cohttp-lwt-jsoo and
+cohttp-mirage libraries for concrete implementations for particular
+targets.
+
+You can implement other targets using the parser very easily. Look at the `IO`
+signature in `lib/s.mli` and implement that in the desired backend.
+
+You can activate some runtime debugging by setting `COHTTP_DEBUG` to any
+value, and all requests and responses will be written to stderr.  Further
+debugging of the connection layer can be obtained by setting `CONDUIT_DEBUG`
+to any value."""
+maintainer: "Anil Madhavapeddy <anil@recoil.org>"
+authors: [
+  "Anil Madhavapeddy"
+  "Stefano Zacchiroli"
+  "David Sheets"
+  "Thomas Gazagnaire"
+  "David Scott"
+  "Rudi Grinberg"
+  "Andy Ray"
+  "Anurag Soni"
+]
+license: "ISC"
+homepage: "https://github.com/mirage/ocaml-cohttp"
+doc: "https://mirage.github.io/ocaml-cohttp/"
+bug-reports: "https://github.com/mirage/ocaml-cohttp/issues"
+depends: [
+  # Built in the native context as well: dune runs the ppx here.
+  "ppx_sexp_conv"
+  "dune" {>= "3.8"}
+  "http-android" {= version}
+  "ocaml-android"
+  "re-android" {>= "1.9.0"}
+  "uri-android" {>= "2.0.0"}
+  "uri-sexp-android"
+  "logs-android"
+  "sexplib0-android"
+  "ppx_sexp_conv-android" {>= "v0.13.0"}
+  "stringext-android"
+  "base64-android" {>= "3.1.0"}
+  "ipaddr-android" {>= "5.6.0"}
+]
+
+dev-repo: "git+https://github.com/mirage/ocaml-cohttp.git"
+build: [
+  ["dune" "build" "-p" "cohttp" "-j" jobs "-x" "android" "@install"]
+  ["rm" "%{name}%.install"]
+]
+install: ["dune" "install" "-x" "android" "-p" "cohttp"]
+remove: ["ocamlfind" "-toolchain" "android" "remove" "cohttp"]
+
+url {
+  src: "git+https://github.com/toots/ocaml-cohttp.git#bigstring-body"
+}
+x-maintenance-intent: ["(latest)"]
